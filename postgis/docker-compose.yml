@@ -1,0 +1,68 @@
+services:
+  service_postgres:
+    container_name: postgres_container
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      TZ: Asia/Tokyo
+    ports:
+      - 5432:5432
+    volumes:
+      - ./docker/db/data:/var/lib/postgresql/data
+      - ./docker/db/sql:/docker-entrypoint-initdb.d
+    restart: always
+
+# ここから下を追加
+
+  service_pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: example@example.com
+      PGADMIN_DEFAULT_PASSWORD: example
+    ports:
+      - 8080:80
+    volumes:
+      - ./docker/pgadmin4:/var/lib/pgadmin
+    restart: always
+    depends_on:
+      - service_postgres
+
+# MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web Console
+    volumes:
+      - ./docker/minio/data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+
+  # MinIO 初期投入（seed_images を trees バケットへ投入）
+  # minio_init:
+  #   image: minio/mc:latest
+  #   container_name: minio_init
+  #   depends_on:
+  #     minio:
+  #       condition: service_started   # healthcheckを待たず、起動後に自前でリトライします
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin123
+  #     TZ: Asia/Tokyo
+  #   entrypoint: ["/bin/sh", "-c", "/init/mc-init.sh"]
+  #   volumes:
+  #     - ./seed_images:/seed_images:ro         # ← ここに投入したいフォルダ構成で画像を置く
+  #     - ./docker/minio/init:/init:ro          # ← mc-init.sh を置く
+  #   restart: "no"
