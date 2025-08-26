@@ -21,15 +21,15 @@ Currently, **All Rights Reserved** by the authors.
 - macOS / Linux
   ```bash
   # pyenv を導入している前提（未導入なら各公式手順でセットアップ）
-  pyenv install 3.11.9
-  pyenv local 3.11.9
+  pyenv install 3.11.13
+  pyenv local 3.11.13
   python -V
   ```
 - Windows（PowerShell / cmd）
   - `pyenv-win` を導入後:
   ```powershell
-  pyenv install 3.11.9
-  pyenv local 3.11.9
+  pyenv install 3.11.13
+  pyenv local 3.11.13
   python --version
   ```
 
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 
 ## 2. 環境変数（例）
 
-ルートに `.env`（または `backend/.env` 等）を配置。以下は例です。
+ルートに `.env`（または `backend/.env` 等）を配置。以下は例です。(.envの設定はデフォルトでは読み込まれません。ポートなどの設定が不要であれば、.envは作成しないでください）
 
 ```dotenv
 # --- Database (PostgreSQL + PostGIS)
@@ -87,8 +87,8 @@ docker compose logs -f
 ```
 
 - 代表的なサービス（例）
-  - `postgis` … PostgreSQL + PostGIS
-  - `minio` … MinIO Server（Webコンソール: http://localhost:9000）
+  - `postgis` … PostgreSQL + PostGIS (pgadmin4: http://localhost:8080)
+  - `minio` … MinIO Server（Webコンソール: http://localhost:9001）
   - `backend` … FastAPI（例: http://localhost:8000）
   - `frontend` … React (例: http://localhost:3000)
 
@@ -119,19 +119,19 @@ mc admin info localminio
 
 ### 4-3. 画像バケットの作成（未作成なら）
 ```bash
-mc mb localminio/images
+mc mb local/trees
 ```
 
 ### 4-4. 匿名ダウンロード権限を付与
 ```bash
-mc anonymous set download localminio/images --recursive
+mc anonymous set download local/trees --recursive
 ```
 
 - 確認：
   ```bash
-  mc anonymous get localminio/images
+  mc anonymous get local/trees
   ```
-  または、ブラウザで `http://localhost:9000/images/<object_key>` にアクセスし、画像が表示されるか確認。
+  または、ブラウザで `http://localhost:9001/trees/<object_key>` にアクセスし、画像が表示されるか確認。
 
 ### 4-5. 既存オブジェクトの Content-Type を正す（任意）
 ```bash
@@ -143,7 +143,7 @@ mc cp --attr "Content-Type=image/jpeg" \
 ### 4-6. （必要な場合のみ）CORS
 ```bash
 mc admin config set localminio api cors_allow_origin="http://localhost:3000"
-mc admin service restart localminio
+mc admin service restart local
 ```
 
 ---
@@ -161,13 +161,13 @@ docker exec -i postgis psql -U app -d app < ./sql/001_testdata.sql
 
 - FastAPI:
   ```bash
-  uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+  python main.py
   ```
 
 - React:
   ```bash
   npm install
-  npm run dev
+  npm start
   ```
 
 ---
@@ -177,7 +177,7 @@ docker exec -i postgis psql -U app -d app < ./sql/001_testdata.sql
 - **MinIO にアクセスできない**  
   - `docker compose ps` で `minio` が起動しているか確認  
 - **匿名ダウンロードできない**  
-  - `mc anonymous get localminio/images` で有効か確認  
+  - `mc anonymous get local/trees` で有効か確認  
 - **CORS エラー**  
   - 4-6 の CORS 設定を追加  
 - **Content-Type が不正**  
