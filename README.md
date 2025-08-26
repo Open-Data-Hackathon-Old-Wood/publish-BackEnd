@@ -189,4 +189,3 @@ docker exec -i postgis psql -U app -d app < ./sql/001_testdata.sql
 
 This repository is provided for hackathon evaluation purposes only.  
 **All Rights Reserved** by the authors.
-""" 
