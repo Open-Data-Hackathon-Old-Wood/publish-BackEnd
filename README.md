@@ -184,8 +184,3 @@ docker exec -i postgis psql -U app -d app < ./sql/001_testdata.sql
   - 4-5 の手順で付け直し
 
 ---
-
-## License
-
-This repository is provided for hackathon evaluation purposes only.  
-**All Rights Reserved** by the authors.
